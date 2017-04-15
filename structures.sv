@@ -26,6 +26,7 @@ typedef struct packed{
 } instr_structure;
 
 reg [31:0]regFile[31:0];
+reg [31:0]dCache[256:0]; 
 
 
 
