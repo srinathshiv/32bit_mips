@@ -1,3 +1,5 @@
+
+
 module top_instr_decode();
 
 logic clk;
@@ -12,24 +14,29 @@ rst=0;
 end
 
 initial begin
-instr = 32'h00431020;
-#2
-instr = 32'h00431024;
-#2
-instr = 32'h00431022;
-#2
-instr = 32'h00431025;
-#2
-instr = 32'h20420002;
-#2
-instr = 32'h00431020;
-#2
-instr = 32'h00431025;
+instr = 32'h01_4b_48_20;
+#4
+instr = 32'h01_4b_48_24;
+#4
+instr = 32'h01_4b_48_25;
+#4
+instr = 32'h01_4b_48_25;
+#4
+instr = 32'h21_49_00_05;
+#4
+instr = 32'h21_49_00_05;
+#4
+instr = 32'h21_49_00_05;
+#4
+instr = 32'h21_49_00_05;
+#4
+instr = 32'h21_49_00_05;
+
 $finish();
 end
 
 always begin
-#1 clk = ~clk;
+#2 clk = ~clk;
 end
 
 endmodule

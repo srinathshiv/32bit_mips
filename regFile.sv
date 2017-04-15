@@ -7,6 +7,7 @@ module regFile(
 
 reg [31:0]rf[31:0];
 
+
 assign rpa_out = rf [rpa_num];
 assign rpb_out = rf [rpb_num];
 

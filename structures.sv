@@ -1,7 +1,10 @@
 
 
-typedef enum { ALU_FUNC_ADD, ALU_FUNC_SUB, ALU_FUNC_AND, ALU_FUNC_OR, ALU_FUNC_XOR, ALU_FUNC_NOR, ALU_FUNC_SLT, ALU_FUNC_NOP } ALU_FUNC;
-typedef enum { MEM_OP_LW, MEM_OP_SW, MEM_OP_NONE } MEM_OP;
+typedef enum {  ALU_FUNC_ADD, ALU_FUNC_SUB, ALU_FUNC_SHIFT,
+		ALU_FUNC_AND, ALU_FUNC_OR, ALU_FUNC_XOR, ALU_FUNC_NOR, 
+		 ALU_FUNC_SLT, ALU_FUNC_NOP } ALU_FUNC;
+ 
+typedef enum { MEM_OP_NONE=0, MEM_OP_LW=1, MEM_OP_SW=2 } MEM_OP;
 typedef enum { OPB_REG, OPB_IMM, OPB_SIGNIMM } OPB;
 typedef enum { JMP_NO, JMP_J, JMP_JR } JMP;
 typedef enum { BR_NO, EQ, NEQ, GTZ} BR;
@@ -25,8 +28,8 @@ typedef struct packed{
 	fullDecode f_dec;
 } instr_structure;
 
-reg [31:0]regFile[31:0];
-reg [31:0]dCache[256:0]; 
+//reg [31:0]regFile[31:0];
+//reg [31:0]dCache[256:0]; 
 
 
 

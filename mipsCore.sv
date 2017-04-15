@@ -1,3 +1,5 @@
+`include "structures.sv"
+
 `include "instr_decode.sv"
 `include "execute.sv"
 `include "memAccess.sv"
@@ -35,40 +37,67 @@ module mipsCore(
 
 instr_structure iContent;
 
-reg [31:0]itec; 	// Instruction To-be Executed Counter
-reg [31:0]fetched_val;	//holds the fetched value during instruction fetch stage
+logic [31:0]PC; 	// Instruction To-be Executed Counter
+logic [31:0]fetched_val;	//holds the fetched value during instruction fetch stage
 
 reg [6:0]decoded_op;	// value that decides ALU operation
 reg [31:0]resultALU;	//result from ALU operation
+reg [31:0]Ldata;	//data from lw instruction
 
-reg [31:0]Ldata;
+//RS AND RT
+logic [31:0]i_rs;
+logic [31:0]i_rt;
 
+//CTRLS
 wire ctrl_memTOreg;
+wire ctrl_regWrite;
+wire ctrl_memRead; 
+wire ctrl_memWrite;
+
+
+//ZERO-FLAG
 wire zFlag;
 
+//----- RF READ PORTS ------//
+assign   i_rs= rfReadData_p0;
+assign   i_rt= rfReadData_p1;
 
-// INSTRUCTION FETCH
-always @(posedge clk) begin
-	itec	       <= iCacheReadAddr;
-	fetched_val    <= iCacheReadData;
-	itec	       <= itec + 4;	
-end
+assign rfReadAddr_p0 = iContent.reg1;
+assign rfReadAddr_p1 = iContent.reg2;
+  
+
+//----- RF WRITE PORTS -----//
+assign rfWriteEn_p0 =  ctrl_regWrite;
+
+//----- D CACHE -----//
+assign dCacheReadEn  = ctrl_memRead;
+assign dCacheWriteEn = ctrl_memWrite;
+
+
  
+// STAGE 1:INSTRUCTION FETCH
+assign iCacheReadAddr = PC;
+assign fetched_val    = iCacheReadData;	
 
-assign rfReadData_p0 = regFile[iContent.reg1];
-assign rfReadData_p1 = regFile[iContent.reg2];
-
-//INSTRUCTION DECODE
+ 
+//STAGE 2:INSTRUCTION DECODE
 instr_decode id (.clk(clk), .rst(rst), .instr(fetched_val), .iCont(iContent) , .opcode_funct(decoded_op));
 
-//EXECUTE
-execute ex(.clk(clk) , .reset(rst) , .alu_op_iCont(iContent), .op1(rfReadData_p0), .op2(rfReadData_p1), .result(resultALU) , .zeroFlag(zFlag));
+//STAGE 3:EXECUTE
+execute ex(.clk(clk) , .reset(rst) , .alu_op_iCont(iContent), .op1(i_rs), .op2(i_rt), .result(resultALU) , .zeroFlag(zFlag));
+  
+//STAGE 4:MEMORY
+memAccess mem(.clk(clk) , .addr(result) , 
+		.rfReadAddr_p1(rfReadAddr_p1), .rfReadData_p1(rfReadData_p1),
+		.dCacheAddr(dCacheAddr), 
+		.dCacheWriteData(dCacheWriteData), 
+		.dCacheReadData(dCacheReadData), 
+		.mem_iCont(iContent) , .loadedData(Ldata));
 
-//MEMORY
-memAccess mem(.clk(clk) , .addr(result) , .mem_iCont(alu_op_iCont) , .loadedData(Ldata));
+//STAGE 5:WRITE-BACK
+writeBack wb(.clk(clk), .lData(loadedData), .result_fromALU(result), .ctrl_mem2reg(ctrl_memTOreg), .wb_iCont(iContent), 
+.rfWriteData_p0(rfWriteData_p0), .rfWriteAddr_p0(rfWriteAddr_p0)); 
 
-//WRITE-BACK
-writeBack wb(.clk(clk), .lData(loadedData), .result_fromALU(result), .ctrl_mem2reg(ctrl_memTOreg), .wb_iCont(alu_op_iCont));
-
+ 
 
 endmodule;

@@ -1,11 +1,30 @@
+`include "regFile.sv"
+`include "dCache.sv"
+
 module top_mipsCore();
 
 logic clk;
 logic rst;
 logic [31:0]iCacheReadData;
-logic [31:0]dCacheReadData;
+logic [31:0]iCacheReadAddr;
+
+logic	[31:0]dCacheReadData;
+logic	[31:0]dCacheWriteData;
+logic	[31:0]dCacheAddr;
+logic	dCacheWriteEn;
+logic	dCacheReadEn;
+
 logic [31:0]rfReadData_p0;
+logic [4:0]rfReadAddr_p0;
+logic rfReadEn_p0;
+
 logic [31:0]rfReadData_p1;
+logic [4:0]rfReadAddr_p1;
+logic rfReadEn_p1;
+
+logic [31:0]   rfWriteData_p0;
+logic [4:0]    rfWriteAddr_p0;
+logic          rfWriteEn_p0;
 
 mipsCore mips( 
 	
@@ -34,22 +53,74 @@ mipsCore mips(
 	.rst(rst)
 );
 
+regFile rf(
+	.clk(clk),
+	.wr_en(rfWriteEn_p0),
+	.rpa_num(rfReadAddr_p0), .rpb_num(rfReadAddr_p1), .wp_num(rfWriteAddr_p0),
+	.wp_data(rfWriteData_p0),
+	.rpa_out(rfReadData_p0), .rpb_out(rfReadData_p1));
+
+dCache dC( clk, dCacheAddr, dCacheWriteEn, dCacheReadEn, rfReadData_p0, loadedData);
+
+
 initial begin
 clk = 1'b1;
 rst = 1'b0;
+
+rfWriteEn_p0 = 1'b1;
+
+
 end
 
+
+
+/*initial begin
+rfWriteAddr_p0 = 5'd1;
+rfWriteData_p0 = 32'd20;
+
+rfWriteAddr_p0 = 5'd2;
+rfWriteData_p0 = 32'd20;
+
+rfWriteAddr_p0 = 5'd3;
+rfWriteData_p0 = 32'd20;
+
+rfWriteAddr_p0 = 5'd4;
+rfWriteData_p0 = 32'd20;
+end*/
+
 initial begin
-iCacheReadData = 32'h01_4B_48_20;
+#20
+iCacheReadData = 32'h01_4B_48_20;	//ADD $1,$2,$3
+#20
 
-#40
-iCacheReadData = 32'h01_4B_48_24;
+iCacheReadData = 32'h01_4B_48_24;	//AND $1,$2,$3
+#20
 
-#40
-iCacheReadData = 32'h01_4B_48_25;
+iCacheReadData = 32'h21_29_00_05;	// ADDI
+#20
 
-#40
-iCacheReadData = 32'h01_4B_48_25;
+iCacheReadData = 32'h21_2A_00_05;
+#20
+
+iCacheReadData = 32'h21_2B_00_05;
+#20
+
+iCacheReadData = 32'h21_2C_00_05;
+#20
+
+iCacheReadData = 32'h8d_49_00_04;	//lw t1, 4(t2)
+#20
+
+iCacheReadData = 32'had_49_00_04;	//sw t1, 4(t2)
+#20
+
+iCacheReadData = 32'h00_0a_48_c3;	//SRA t1 t2 03
+#20
+
+iCacheReadData = 32'h01_4B_48_25;	//OR $1,$2,$3
+#20
+
+iCacheReadData = 32'h01_4B_48_25;	//OR 
 
 $finish();
 end
