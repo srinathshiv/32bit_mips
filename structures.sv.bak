@@ -26,7 +26,6 @@ typedef struct packed{
 	reg [15:0]imm;
 	reg [31:0]signImm;
 	reg [27:0]jAddr;
-	reg [31:0]br_addr;
 	fullDecode f_dec;
 } instr_structure;
 

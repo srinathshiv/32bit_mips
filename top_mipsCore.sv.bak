@@ -93,7 +93,7 @@ initial begin
 iCacheReadData = 32'h20_01_00_02;
 #20
 
-/*iCacheReadData = 32'h20_22_00_02;
+iCacheReadData = 32'h20_22_00_02;
 #20
 
 iCacheReadData = 32'h20_43_00_02;
@@ -113,7 +113,7 @@ iCacheReadData = 32'h8c_46_00_00;	//LW $6, 0($2)
 
 iCacheReadData = 32'h20_c6_00_00;	//ADDI $6,$6,0
 #30
-*/
+
 /*iCacheReadData = 32'h21_29_00_05;	// ADDI
 #20
 

@@ -1,0 +1,9 @@
+module instr_fetch(input clk, input [31:0]ITEC, output reg [31:0]fetchVal);
+
+always @(posedge clk) begin
+
+fetch_val <= instr_mem[ITEC];
+
+end
+
+endmodule;

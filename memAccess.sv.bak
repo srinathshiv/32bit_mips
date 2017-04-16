@@ -1,4 +1,4 @@
-//`include "structures.sv"
+`include "structures.sv"
 
 module memAccess(input clk, input [31:0]addr, 
 		 input [4:0]rfReadAddr_p1,input [31:0]rfReadData_p1, 

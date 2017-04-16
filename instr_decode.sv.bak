@@ -213,7 +213,8 @@ $display("<===Exit instruction decode\n");
 end
 
 always @(posedge clk) begin
-	
+
+
 end
 
 

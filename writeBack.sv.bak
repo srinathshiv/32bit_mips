@@ -15,7 +15,7 @@ $display("--->Enter WRITEBACK");
 	1'b1: begin
 		if(wb_iCont.f_dec.mem_op == MEM_OP_LW) begin
 			rfWriteData_p0 <= lData;
-			$display("writing data %d from memory for lw",rfWriteData_p0); 
+			$display("writing data %d from memory for lw",rfWriteData_p0);
 		end
 		else begin 
 			$display("operation sw: this stage is useless");
