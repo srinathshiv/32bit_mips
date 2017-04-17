@@ -88,13 +88,13 @@ rfWriteAddr_p0 = 5'd4;
 rfWriteData_p0 = 32'd20;
 end*/
 
-initial begin
+initial begin 
 
 iCacheReadData = 32'h20_01_00_02;
-#20
+#14
 
 /*iCacheReadData = 32'h20_22_00_02;
-#20
+#12
 
 iCacheReadData = 32'h20_43_00_02;
 #20
@@ -144,7 +144,7 @@ $finish();
 end
 
 always begin
-#2
+#1
 clk = ~clk;
 end
 

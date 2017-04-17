@@ -6,8 +6,8 @@ module instr_decode(
 	input [31:0]instr, 
 	output instr_structure iCont, 
 	output [6:0]opcode_funct ,
-	input logic [31:0]op1_toALU,
-	input logic [31:0]op2_toALU,
+	output logic [31:0]op1_toALU,
+	output logic [31:0]op2_toALU,
 	input [31:0]PC_next
 );
 
@@ -213,7 +213,8 @@ $display("<===Exit instruction decode\n");
 end
 
 always @(posedge clk) begin
-	
+ 	op1_toALU <= iCont.reg1; 
+	op2_toALU <= iCont.reg2; 
 end
 
 

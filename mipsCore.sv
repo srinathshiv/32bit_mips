@@ -63,6 +63,8 @@ logic ctrl_branch;
 //ZERO-FLAG 
 logic zFlag;
 
+integer clock_count = 0;
+
 //----- RF READ PORTS ------//
 
 assign rfReadAddr_p0  = iContent.reg1;
@@ -88,6 +90,9 @@ assign Ldata = dCacheReadData;
 assign iCacheReadAddr = PC;
 assign fetched_val    = iCacheReadData;	
 always @(posedge clk) begin
+clock_count  = clock_count +1;
+$display("--------------------\n| clock-cycle = %d \n--------------------",clock_count);
+ 
 	PC_next <= PC+ 3'd4;
 	
 	//$display("if: rs and rt = %d and %d",rfReadData_p0, rfReadData_p1);

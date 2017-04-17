@@ -14,6 +14,8 @@ assign operand1 = op1;
 assign operand2 = (alu_op_iCont.f_dec.opb == OPB_SIGNIMM) ? alu_op_iCont.signImm : op2 ; 
 assign operandShift = alu_op_iCont.shamt;
 
+//note: A generic ALU (using adder block for subtraction)is not used as the design's main constrain was delay rather than power
+
 always @(posedge clk) begin
 $display("--->Enter Execute");
 
