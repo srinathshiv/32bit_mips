@@ -4,7 +4,7 @@
 `include "execute.sv"
 `include "memAccess.sv"
 `include "writeBack.sv"
-    
+     
 module mipsCore( 
 	//ICache Ifc
 	input  logic [31:0]        iCacheReadData,
@@ -79,7 +79,7 @@ logic imdone_if, imdone_id, imdone_ex, imdone_mem, imdone_wb ;
 
 
 //----- RF READ PORTS ------//
-
+ 
 assign rfReadAddr_p0  = iCacheReadData[25:21];
 assign rfReadAddr_p1  = iCacheReadData[20:16];
 //assign rfWriteAddr_p0 = iContent.reg_dest;
@@ -98,7 +98,7 @@ assign rfWriteEn_p0 =  1'b1;
 assign dCacheReadEn  = 1'b1;
 assign dCacheWriteEn = 1'b1;
 
-assign dCacheAddr = resultALU;
+//assign dCacheAddr = resultALU;
 assign Ldata = dCacheReadData; 
 
  
@@ -108,7 +108,7 @@ assign iCacheReadAddr = PC_next;
 always @(posedge clk) begin
 clock_count  = clock_count +1;
 $display("--------------------\n| clock-cycle = %d \n--------------------",clock_count);
-
+ 
 	fetched_val  <= iCacheReadData;
 $display("PC VALUE = %d ; instruction fetch: %h", PC_next, iCacheReadData);	
 
@@ -124,6 +124,7 @@ $display("PC VALUE = %d ; instruction fetch: %h", PC_next, iCacheReadData);
 	
 		2'b10: begin
 		PC_next <= PC_ex;
+		$display("@@\n@@@@@@@@\nPC is updated based on branch,.....\n###############\n@@@@@@@\n PC = %h\n PC_fromex = %h",PC_next,PC_ex);
 		end
 
 		default: begin
@@ -139,7 +140,7 @@ end
    
 //STAGE 2:INSTRUCTION DECODE
 instr_decode id (.clk(clk), .rst(rst),  
-		 .instr(fetched_val), .i_rs(i_rs) , .i_rt(i_rt) ,
+		 .instr(fetched_val), .op1_in(i_rs) , .op2_in(i_rt) ,
 		
 		.iCont_toALU(iContent) , .opcode_funct(decoded_op), 
 		.op1( op1_id), .op2( op2_id), .jFlag(jumpFlag),
@@ -156,23 +157,23 @@ execute ex(.clk(clk) , .rst(rst) ,
 	   .result(resultALU) , .zeroFlag(zFlag), .hold_op2(op2_ALU), .iCont_out(toMem_iCont),
 	   
 
-	   .PC_in(PC_id), .PC_out(PC_alu),
+	   .PC_in(PC_id), .PC_out(PC_ex),
 	   .done_in(imdone_id), .done_out(imdone_ex)
 	  );
-    
+     
 //STAGE 4:MEMORY
 memAccess mem(  .clk(clk) , .storeData(op2_ALU), .addr(resultALU) , 
 		.rfReadAddr_p1(rfReadAddr_p1),.rfReadData_p1(rfReadData_p1), 
-		.dCacheAddr(dCacheAddr), .dCacheWriteEn(dCacheWriteEn), 
-		.dCacheReadEn(dCacheReadEn),.dCacheReadData(dCacheReadData),
-		 .mem_iCont(toMem_iCont) , 
+		.dCacheReadData(dCacheReadData), .mem_iCont(toMem_iCont) , 
 
-		.dCacheWriteData(dCacheWriteData), .loadedData(Ldata), .resultOut(result_fromMEM), .iCont_out(toWB_iCont),
+		.dCacheWriteData(dCacheWriteData), .loadedData(Ldata), .resultOut(result_fromMEM), 
+		.iCont_out(toWB_iCont),
+  		.dCacheAddr(dCacheAddr), .dCacheWriteEn(dCacheWriteEn), .dCacheReadEn(dCacheReadEn),
 
 		.done_in(imdone_ex), .done_out(imdone_mem)
 	);
  
-
+ 
 //STAGE 5:WRITE-BACK
 writeBack wb(   .clk(clk), .lData(Ldata), 
 		.result_fromALU(result_fromMEM), .ctrl_mem2reg(ctrl_memTOreg), 

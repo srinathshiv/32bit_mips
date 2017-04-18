@@ -1,7 +1,7 @@
 `include "regFile.sv"
 `include "dCache.sv"
 `include "iCache.sv"
-
+ 
 module top_mipsCore();
 
 logic clk;
@@ -14,7 +14,7 @@ logic	[31:0]dCacheWriteData;
 logic	[31:0]dCacheAddr;
 logic	dCacheWriteEn;
 logic	dCacheReadEn;
-
+ 
 logic [31:0]rfReadData_p0;
 logic [4:0]rfReadAddr_p0;
 logic rfReadEn_p0;
@@ -91,7 +91,7 @@ rfWriteData_p0 = 32'd20;
 end*/
 
 initial begin 
-#30
+#60
 
 /*iCacheReadData = 32'h20_01_00_02;
 #2
@@ -128,13 +128,13 @@ iCacheReadData = 32'h21_2A_00_05;
 
 iCacheReadData = 32'h21_2B_00_05;
 #20
- 
+  
 iCacheReadData = 32'h21_2C_00_05;
 #20
 
 iCacheReadData = 32'h8d_49_00_04;	//lw t1, 4(t2)
 #20
-
+ 
 iCacheReadData = 32'had_49_00_04;	//sw t1, 4(t2)
 #20
 

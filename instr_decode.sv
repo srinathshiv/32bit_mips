@@ -4,8 +4,8 @@ module instr_decode(
 	input clk, 
 	input rst,
 	input [31:0]instr, 
-	input logic [31:0]i_rs,
-	input logic [31:0]i_rt,
+	input logic [31:0]op1_in,
+	input logic [31:0]op2_in,
 
 	output instr_structure iCont_toALU, 
 	output logic [6:0]opcode_funct ,
@@ -50,7 +50,7 @@ always_comb begin
  iCont.shamt = (funct==6'b000011) ? instr[4:0] : 5'b0 ;
 
  iCont.jAddr = instr[25:0] << 2; 
- iCont.br_addr = PC_in + (iCont.signImm << 2) ;
+ iCont.br_addr = PC_in + (iCont.signImm <<< 2) ;
 
  
 
@@ -131,35 +131,43 @@ case (opcode_funct)
 			iCont.f_dec = { ALU_FUNC_ADD, MEM_OP_SW, OPB_SIGNIMM, JMP_NO, BR_NO};
 			end
 	
-/*no-op*/	default: $display ("");
+/*no-op*/	default: begin
+			iCont.f_dec = { ALU_FUNC_NOP, MEM_OP_NONE, OPB_REG, JMP_NO, BR_NO};
+			$display ("");
+			end
 
 endcase
  
 
 end // always_comb
 
-always @(posedge clk) begin
-	
-	if(done_in == 1'b1) begin
+always_comb begin
 
 		case(iCont.f_dec.jmp) 
 			JMP_J: begin
-				PC_out <=  {PC_in[31:28], iCont.jAddr} ;
+				PC_out =  {PC_in[31:28], iCont.jAddr} ;
 			end
 
 			JMP_JR: begin
-				PC_out <= i_rs;
+				PC_out = op1_in;
 			end
 
 			default: begin
-				PC_out <= PC_in;
+				PC_out = PC_in;
 			end
 		endcase
+
+ 
+end
+
+always @(posedge clk) begin
+	
+	if(done_in == 1'b1) begin
 	
 		$display("instruction decoded");
 		$display("$ Decoded data forwarded to ALU");
- 			op1 <= i_rs; 
-			op2 <= (iCont.f_dec.opb == OPB_SIGNIMM)  ? iCont.signImm : i_rt ;
+ 			op1 <= op1_in; 
+			op2 <= (iCont.f_dec.opb == OPB_SIGNIMM)  ? iCont.signImm : op2_in ;
 			iCont_toALU <= iCont;
 	end
 	

@@ -5,9 +5,7 @@ module memAccess(input clk,
 		 input [31:0]addr, 
 		 input [4:0]rfReadAddr_p1,
   		 input [31:0]rfReadData_p1, 
-		 input logic [31:0]dCacheAddr, 
-		 input logic dCacheWriteEn,
-		 input logic dCacheReadEn, 
+		 
 		 input logic [31:0]dCacheReadData,
 		 input  instr_structure mem_iCont,
 		 
@@ -15,6 +13,9 @@ module memAccess(input clk,
 	 	 output logic [31:0]loadedData,
 		 output logic [31:0]resultOut,
 		 output instr_structure iCont_out,
+		 output logic [31:0]dCacheAddr, 
+		 output logic dCacheWriteEn,
+		 output logic dCacheReadEn, 
 
 		input logic    done_in,
 		output logic    done_out
@@ -22,7 +23,7 @@ module memAccess(input clk,
  
 logic [31:0]data;
 //assign rfReadAddr_p1 = mem_iCont.reg_dest;
-//assign dCacheAddr = addr ;
+assign dCacheAddr = addr ;
 assign dCacheWriteEn = 1'b1;
 
 always @(posedge clk) begin
@@ -41,12 +42,16 @@ if(done_in == 1'b1) begin
 		MEM_OP_SW: begin
 			$display("operation: STORE_WORD");
 			 //data <= rfReadData_p1;
+//			dCacheAddr <= addr;
+			
 			dCacheWriteData <= storeData;
+			
 			$display("storing data,  rfReadData_p1= %d  into dCache addr %d", rfReadData_p1, dCacheAddr);
 		end
 		
 		MEM_OP_LW: begin
 			$display("operation: LOAD WORD");
+//			dCacheAddr <= addr;
 			loadedData <= dCacheReadData;	
 			$display("loading data,  loadedData = %d , dCacheReadData = %d from dCache addr %d", loadedData, dCacheReadData, dCacheAddr);
 		end

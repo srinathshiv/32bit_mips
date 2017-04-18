@@ -7,7 +7,7 @@ module execute( input clk,
 		input [31:0]op2, 
 
 		
-		output reg [63:0]result, 
+		output reg [31:0]result, 
 		output logic zeroFlag,
 		output logic [31:0]hold_op2,
 		output instr_structure iCont_out,
@@ -75,36 +75,17 @@ if(done_in == 1'b1) begin
 					result <= operand2 >> operandShift;
 					$display("SRA: shifting %d by %d",operand1,operandShift);
 				end
+
+		ALU_FUNC_NOP	: begin
+					$display("no operation in ALU");
+				end
 		
 		default : begin result <= result    ; $display("NO-OPERATION") ; end
 	endcase
 
-	case(alu_op_iCont.f_dec.br)
-		EQ: begin 
-		$display("branch equal");
-		zeroFlag = (result == 64'd0) ? 1'b1 : 1'b0;
-		
- 		end
-
-		NEQ: begin 
-		$display("branch not-eq");
-		zeroFlag = (result != 64'd0) ? 1'b1 : 1'b0;
-			
-		end
-
-		GTZ: begin 
-		$display("branch greater than zero");
-		zeroFlag = (result > 64'd0) ? 1'b1 : 1'b0;
-		end
-		
-		default: begin
-		zeroFlag = 1'b0;
-			$display("no branch operations. PC remains unaffected");
-		end
-	endcase
-
-	PC_out <= (zeroFlag == 1'b1) ? alu_op_iCont.br_addr : PC_in; 
 	
+	
+	 
 
 	done_out <= done_in;
 	iCont_out <= alu_op_iCont;
@@ -118,6 +99,36 @@ end
 
 end //always
 
+always_comb begin
+
+	case(alu_op_iCont.f_dec.br)
+		EQ: begin 
+		$display("branch equal");
+		zeroFlag = (result == 32'd0) ? 1'b1 : 1'b0;
+		
+ 		end
+
+		NEQ: begin 
+		$display("branch not-eq");
+		zeroFlag = (result != 32'd0) ? 1'b1 : 1'b0;
+			
+		end
+
+		GTZ: begin 
+		$display("branch greater than zero");
+		zeroFlag = (result > 32'd0) ? 1'b1 : 1'b0;
+		end
+		
+		default: begin
+		zeroFlag = 1'b0;
+			$display("no branch operations. PC remains unaffected");
+		end
+	endcase
+
+
+end
+
+assign PC_out = (zeroFlag == 1'b1) ? alu_op_iCont.br_addr : PC_in; 
 
 //assign PC_next = (zeroFlag == 1'b1) ? alu_op_iCont.br_addr : PC_next; 
  
