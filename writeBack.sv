@@ -1,19 +1,39 @@
 //`include"structures.sv"
 
-module writeBack( input clk, input [31:0]lData, input [31:0]result_fromALU, input ctrl_mem2reg, input instr_structure wb_iCont, output reg [31:0]rfWriteData_p0,output logic [4:0]rfWriteAddr_p0);
+module writeBack( 
+		input clk, 
+		input [31:0]lData, 
+		input [31:0]result_fromALU, 
+		input ctrl_mem2reg, 
+		input instr_structure wb_iCont, 
+		
+		output logic [31:0]rfWriteData_p0,
+		output logic [4:0]rfWriteAddr_p0,
+
+		input logic   done_in ,
+		output logic  done_out
+		);
  
-assign rfWriteAddr_p0 = wb_iCont.reg_dest;
+//assign rfWriteAddr_p0 = wb_iCont.reg_dest;
 assign ctrl_mem2reg = (wb_iCont.f_dec.mem_op == MEM_OP_NONE) ? 1'b0: 1'b1;
+
 always@(posedge clk) begin
-$display("--->Enter WRITEBACK");
+
+rfWriteAddr_p0 <= wb_iCont.reg_dest;
+
+if( done_in == 1'b1) begin
+
+	$display("--->Enter WRITEBACK");
 	case (ctrl_mem2reg) 
 	1'b0: begin 
+		rfWriteAddr_p0 <= wb_iCont.reg_dest;
 		rfWriteData_p0 <= result_fromALU;
 		$display("writing data %d from ALU to reg %d ; data to be written = %d",result_fromALU,rfWriteAddr_p0, rfWriteData_p0);
 	      end
 	
 	1'b1: begin
 		if(wb_iCont.f_dec.mem_op == MEM_OP_LW) begin
+			rfWriteAddr_p0 <= wb_iCont.reg_dest;
 			rfWriteData_p0 <= lData;
 			$display("writing data %d from memory for lw",rfWriteData_p0); 
 		end
@@ -25,8 +45,16 @@ $display("--->Enter WRITEBACK");
 		$display("NOP in writeback");
 	end
 	endcase
-$display("<===Exit WRITEBACK\n********************\n");
+	$display("<===Exit WRITEBACK\n********************\n");
+	
+	done_out <= done_in;	
+end // if
+
+else if(done_in == 1'b0) begin
+	done_out <= 1'b0;
 end
+
+end // always
 
 endmodule;
  

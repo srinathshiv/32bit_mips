@@ -1,24 +1,45 @@
 //`include "structures.sv"
 
-module execute( input clk, input reset, input instr_structure alu_op_iCont, input [31:0]op1, input [31:0]op2, output reg [63:0]result, 
+module execute( input clk, 
+		input rst, 
+		input instr_structure alu_op_iCont, 
+		input [31:0]op1, 
+		input [31:0]op2, 
+
+		
+		output reg [63:0]result, 
 		output logic zeroFlag,
-		output logic ctrl_br,
-		input logic [31:0]PC_next);
+		output logic [31:0]hold_op2,
+		output instr_structure iCont_out,
+		
+		input logic [31:0]PC_in,
+		output logic [31:0]PC_out,
+
+		input logic  done_in  ,
+		output logic done_out
+		);
 
 logic [31:0] operand1;
 logic [31:0] operand2;
 logic [4:0] operandShift;
-//logic [3:0] PC_MSB;
- 
-assign operand1 = op1;
-assign operand2 = (alu_op_iCont.f_dec.opb == OPB_SIGNIMM) ? alu_op_iCont.signImm : op2 ; 
-assign operandShift = alu_op_iCont.shamt;
 
-//note: A generic ALU (using adder block for subtraction)is not used as the design's main constrain was delay rather than power
+
+always_comb begin 
+operand1 = op1;
+operand2 = (alu_op_iCont.f_dec.opb == OPB_SIGNIMM) ?  alu_op_iCont.signImm : op2;
+$display(alu_op_iCont.f_dec.alu_func);
+$display(op2);
+$display(alu_op_iCont.signImm);
+//operand2 = op2;
+
+operandShift = alu_op_iCont.shamt;
+end
+
 
 always @(posedge clk) begin
-$display("--->Enter Execute");
 
+if(done_in == 1'b1) begin
+	$display("--->Enter Execute");
 	case(alu_op_iCont.f_dec.alu_func)  
 		ALU_FUNC_ADD	: begin 
 					result  <= operand1 + operand2; 
@@ -57,12 +78,6 @@ $display("--->Enter Execute");
 		
 		default : begin result <= result    ; $display("NO-OPERATION") ; end
 	endcase
-$display("<===Exit Execute\n");
-
-end
-
-
-always@ (posedge clk) begin
 
 	case(alu_op_iCont.f_dec.br)
 		EQ: begin 
@@ -87,9 +102,24 @@ always@ (posedge clk) begin
 			$display("no branch operations. PC remains unaffected");
 		end
 	endcase
+
+	PC_out <= (zeroFlag == 1'b1) ? alu_op_iCont.br_addr : PC_in; 
+	
+
+	done_out <= done_in;
+	iCont_out <= alu_op_iCont;
+	hold_op2 <= op2;
+	$display("<===Exit Execute\n");
+end // for if(done_in==1'b1)
+
+else if(done_in == 1'b0) begin
+	done_out <= 1'b0;
 end
 
-assign PC_next = (zeroFlag == 1'b1) ? alu_op_iCont.br_addr : PC_next; 
+end //always
+
+
+//assign PC_next = (zeroFlag == 1'b1) ? alu_op_iCont.br_addr : PC_next; 
  
 endmodule;
 

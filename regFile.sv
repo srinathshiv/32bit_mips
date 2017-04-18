@@ -11,6 +11,7 @@ reg [31:0]rf[31:0];
 assign rpa_out = rf [rpa_num];
 assign rpb_out = rf [rpb_num];
 
+
 always @(posedge clk) begin
 	rf[0] <= 1'b0;
 		if (wr_en==1'b1 && wp_num != 1'b0) begin

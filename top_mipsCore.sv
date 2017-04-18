@@ -1,5 +1,6 @@
 `include "regFile.sv"
 `include "dCache.sv"
+`include "iCache.sv"
 
 module top_mipsCore();
 
@@ -52,7 +53,7 @@ mipsCore mips(
 	.clk(clk),
 	.rst(rst)
 );
-
+ 
 regFile rf(
 	.clk(clk),
 	.wr_en(rfWriteEn_p0),
@@ -62,13 +63,14 @@ regFile rf(
 
 dCache dC( clk, dCacheAddr, dCacheWriteEn, dCacheReadEn, rfReadData_p1, dCacheReadData);
 
+iCache iC( clk, iCacheReadAddr, iCacheReadData );
 
 initial begin
 clk = 1'b1;
 rst = 1'b0;
 
 rfWriteEn_p0 = 1'b1;
-
+//iCacheReadAddr = 32'd0;
 
 end
 
@@ -89,10 +91,14 @@ rfWriteData_p0 = 32'd20;
 end*/
 
 initial begin 
+#30
 
-iCacheReadData = 32'h20_01_00_02;
-#14
+/*iCacheReadData = 32'h20_01_00_02;
+#2
 
+iCacheReadData = 32'h00_43_10_20;
+#10
+*/
 /*iCacheReadData = 32'h20_22_00_02;
 #12
 
