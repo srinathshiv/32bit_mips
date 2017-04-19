@@ -14,47 +14,39 @@ module writeBack(
 		output logic  done_out
 		);
  
-//assign rfWriteAddr_p0 = wb_iCont.reg_dest;
 assign ctrl_mem2reg = (wb_iCont.f_dec.mem_op == MEM_OP_NONE) ? 1'b0: 1'b1;
 
-always@(posedge clk) begin
+always_comb begin
+rfWriteAddr_p0 = wb_iCont.reg_dest;
 
-rfWriteAddr_p0 <= wb_iCont.reg_dest;
+	if( done_in == 1'b1) begin
 
-if( done_in == 1'b1) begin
+		case (ctrl_mem2reg) 
 
-	$display("--->Enter WRITEBACK");
-	case (ctrl_mem2reg) 
-	1'b0: begin 
-		rfWriteAddr_p0 <= wb_iCont.reg_dest;
-		rfWriteData_p0 <= result_fromALU;
-		$display("writing data %d from ALU to reg %d ; data to be written = %d",result_fromALU,rfWriteAddr_p0, rfWriteData_p0);
-	      end
+		1'b0: begin 
+		rfWriteAddr_p0 = wb_iCont.reg_dest;
+		rfWriteData_p0 = result_fromALU;
+	     	end
 	
-	1'b1: begin
-		if(wb_iCont.f_dec.mem_op == MEM_OP_LW) begin
-			rfWriteAddr_p0 <= wb_iCont.reg_dest;
-			rfWriteData_p0 <= lData;
-			$display("writing data %d from memory for lw",rfWriteData_p0); 
+		1'b1: begin
+			if(wb_iCont.f_dec.mem_op == MEM_OP_LW) begin
+			rfWriteAddr_p0 = wb_iCont.reg_dest;
+			rfWriteData_p0 = lData;
+			end
+	    	end
+
+		default: begin
+			$display("NOP in writeback");
 		end
-		else begin 
-			$display("operation sw: this stage is useless");
-		end
-	      end
-	default: begin
-		$display("NOP in writeback");
+		endcase
+	
+	done_out = done_in;	
+	end // if( done_in == 1'b1)
+
+	else if(done_in == 1'b0) begin
+		done_out = 1'b0;
 	end
-	endcase
-	$display("<===Exit WRITEBACK\n********************\n");
-	
-	done_out <= done_in;	
-end // if
-
-else if(done_in == 1'b0) begin
-	done_out <= 1'b0;
-end
-
-end // always
+end // always_comb
 
 endmodule;
  
