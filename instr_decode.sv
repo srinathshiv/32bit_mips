@@ -3,11 +3,14 @@
 module instr_decode(
 	input clk, 
 	input rst,
+	/*input logic freezeID,*/
 	input [31:0]instr, 
 	input logic [31:0]op1_in,
 	input logic [31:0]op2_in,
 
 	output instr_structure iCont_toALU, 
+	output logic [4:0]rfReadAddr_p0,
+	output logic [4:0]rfReadAddr_p1,
 	output logic [6:0]opcode_funct ,
 	output logic [31:0]op1,
 	output logic [31:0]op2,
@@ -29,32 +32,30 @@ logic [5:0]funct;
 
 BOOLEAN r_inst;
 
-
-
-
-
 always_comb begin 
- opcode = instr[31:26];
- funct = instr[5:0];
+	opcode = instr[31:26];
+	funct = instr[5:0];
 
- r_inst = (opcode == 6'b0) ? TRUE : FALSE ;
- opcode_funct = { r_inst, (r_inst) ? funct: opcode }; 
+	r_inst = (opcode == 6'b0) ? TRUE : FALSE ;
+	opcode_funct = { r_inst, (r_inst) ? funct: opcode }; 
 
- iCont.reg1  = instr[25:21];
- iCont.reg2  = instr[20:16];
- iCont.reg_dest = (r_inst) ? instr[15:11] : instr[20:16];
+	iCont.reg1  = instr[25:21];
+	iCont.reg2  = instr[20:16];
+	   rfReadAddr_p0  = iCont.reg1;		//iCacheReadData[25:21]; /* iContent.reg1;*/
+	   rfReadAddr_p1  = iCont.reg2;		//iCacheReadData[20:16]; /* iContent.reg2;*/
+	iCont.reg_dest = (r_inst) ? instr[15:11] : instr[20:16];
 
- iCont.imm = instr[15:0]; 
- iCont.signImm =  { (instr[15]==1'b1) ? 16'hffff:16'h0000 , instr[15:0] };
+	iCont.imm = instr[15:0]; 
+	iCont.signImm =  { (instr[15]==1'b1) ? 16'hffff:16'h0000 , instr[15:0] };
  
- iCont.shamt = (funct==6'b000011) ? instr[4:0] : 5'b0 ;
+	iCont.shamt = (funct==6'b000011) ? instr[4:0] : 5'b0 ;
 
- iCont.jAddr = instr[25:0] << 2; 
- iCont.br_addr = PC_in + (iCont.signImm <<< 2) ;
+	iCont.jAddr = instr[25:0] << 2; 
+	iCont.br_addr = PC_in + (iCont.signImm <<< 2) ;
 
  
 
-case (opcode_funct)
+		case (opcode_funct)
 /*add*/		7'h60:  begin 
 			iCont.f_dec = { ALU_FUNC_ADD, MEM_OP_NONE, OPB_REG, JMP_NO, BR_NO} ;
 			end
@@ -133,46 +134,32 @@ case (opcode_funct)
 	
 /*no-op*/	default: begin
 			iCont.f_dec = { ALU_FUNC_NOP, MEM_OP_NONE, OPB_REG, JMP_NO, BR_NO};
-			$display ("");
 			end
 
-endcase
+		endcase
  
 
 end // always_comb
-
-always_comb begin
-
-		case(iCont.f_dec.jmp) 
-			JMP_J: begin
-				PC_out =  {PC_in[31:28], iCont.jAddr} ;
-			end
-
-			JMP_JR: begin
-				PC_out = op1_in;
-			end
-
-			default: begin
-				PC_out = PC_in;
-			end
-		endcase
-
  
-end
+always_comb begin
+	case(iCont.f_dec.jmp) 
+		JMP_J: begin PC_out =  {PC_in[31:28], iCont.jAddr} ; end
+
+		JMP_JR: begin PC_out = op1_in; end
+
+		default: begin PC_out = PC_in; end
+	endcase
+end // always_comb
 
 always @(posedge clk) begin
-	
-	if(done_in == 1'b1) begin
-	
-		$display("instruction decoded");
-		$display("$ Decoded data forwarded to ALU");
- 			op1 <= op1_in; 
-			op2 <= (iCont.f_dec.opb == OPB_SIGNIMM)  ? iCont.signImm : op2_in ;
-			iCont_toALU <= iCont;
+	if( /*!freezeID &&*/ done_in == 1'b1) begin
+ 		op1 <= op1_in; 
+		//op2 <= (iCont.f_dec.opb == OPB_SIGNIMM)  ? iCont.signImm : op2_in ;
+		op2 <= op2_in;
+		iCont_toALU <= iCont;
 	end
-	
 		done_out <= done_in; 
-end
+end //always @(posedge clk)
 
 assign jFlag = (iCont.f_dec.jmp != JMP_NO) ? 1'b1: 1'b0;
 

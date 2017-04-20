@@ -2,11 +2,11 @@
 
 module execute( input clk, 
 		input rst, 
+		/*input logic freezeEX,*/
 		input instr_structure alu_op_iCont, 
 		input [31:0]op1, 
 		input [31:0]op2, 
-
-		
+	
 		output reg [31:0]result, 
 		output logic zeroFlag,
 		output logic [31:0]hold_op2,
@@ -23,114 +23,63 @@ logic [31:0] operand1;
 logic [31:0] operand2;
 logic [4:0] operandShift;
 
-
 always_comb begin 
-operand1 = op1;
-operand2 = (alu_op_iCont.f_dec.opb == OPB_SIGNIMM) ?  alu_op_iCont.signImm : op2;
-$display(alu_op_iCont.f_dec.alu_func);
-$display(op2);
-$display(alu_op_iCont.signImm);
-//operand2 = op2;
-
-operandShift = alu_op_iCont.shamt;
+	operand1 = op1;
+	operand2 = (alu_op_iCont.f_dec.opb == OPB_SIGNIMM) ?  alu_op_iCont.signImm : op2;
+	operandShift = alu_op_iCont.shamt;
 end
 
 
 always @(posedge clk) begin
 
-if(done_in == 1'b1) begin
-	$display("--->Enter Execute");
-	case(alu_op_iCont.f_dec.alu_func)  
-		ALU_FUNC_ADD	: begin 
-					result  <= operand1 + operand2; 
-					$display("ADD-ing %d and %d ; RESULT = %d ",operand1,operand2,result); 
-				  end // ADD 
+	if( /*!freezeEX &&*/ done_in == 1'b1) begin
+	
+		case(alu_op_iCont.f_dec.alu_func)  
+			ALU_FUNC_ADD	: begin result  <= operand1 + operand2; end 
 
-		ALU_FUNC_SUB	: begin 
-					result  <= operand1 - operand2; 
-					$display("SUBTRACT-ing %d and %d",operand1,operand2); 
-				  end	// SUB
+			ALU_FUNC_SUB	: begin result  <= operand1 - operand2; end 
 
-		ALU_FUNC_AND	: begin 
-					result  <= operand1 & operand2;
-					$display("AND-ing %d and %d ",operand1,operand2); 
-				  end	// AND
+			ALU_FUNC_AND	: begin result  <= operand1 & operand2; end 
 
-		ALU_FUNC_OR	: begin 
-					result  <= operand1 | operand2;
-					$display("OR-ing %d and %d", operand1, operand2); 
-				  end 	// OR
+			ALU_FUNC_OR	: begin result  <= operand1 | operand2; end 
 
-		ALU_FUNC_XOR	: begin 
-					result  <= operand1 ^ operand2;
-					$display("XOR-ing %d and %d", operand1, operand2); 
-				  end	// XOR
+			ALU_FUNC_XOR	: begin result  <= operand1 ^ operand2; end
 
-		ALU_FUNC_NOR	: begin	
-					result  <= ~(operand1|operand2); 
-					$display("NOR-ing %d and %s", operand1, operand2)      ; 
-				end	// NOR
+			ALU_FUNC_NOR	: begin	result  <= ~(operand1|operand2); end 
 
-		ALU_FUNC_SHIFT	: begin
-					result <= operand2 >> operandShift;
-					$display("SRA: shifting %d by %d",operand1,operandShift);
-				end
+			ALU_FUNC_SHIFT	: begin result <= operand2 >> operandShift; end
 
-		ALU_FUNC_NOP	: begin
-					$display("no operation in ALU");
-				end
+			ALU_FUNC_NOP	: begin $display("NO_OPERATION IN ALU"); end
 		
-		default : begin result <= result    ; $display("NO-OPERATION") ; end
-	endcase
+			default 	: begin result <= result    ; $display("UNKNOWN ARITHMETIC INSTRUCTION") ; end
+		endcase 
 
-	
-	
-	 
+		done_out  <= done_in;
+		iCont_out <= alu_op_iCont;
+		hold_op2  <= op2;
+	end // if( !freezeEX && done_in==1'b1)
 
-	done_out <= done_in;
-	iCont_out <= alu_op_iCont;
-	hold_op2 <= op2;
-	$display("<===Exit Execute\n");
-end // for if(done_in==1'b1)
-
-else if(done_in == 1'b0) begin
+	else if(done_in == 1'b0) begin
 	done_out <= 1'b0;
-end
+	end
 
-end //always
+end //always@(posedge clk)
 
 always_comb begin
 
 	case(alu_op_iCont.f_dec.br)
-		EQ: begin 
-		$display("branch equal");
-		zeroFlag = (result == 32'd0) ? 1'b1 : 1'b0;
-		
- 		end
+		EQ : begin zeroFlag = (result == 32'd0) ? 1'b1 : 1'b0; end
+ 
+		NEQ: begin zeroFlag = (result != 32'd0) ? 1'b1 : 1'b0; end
 
-		NEQ: begin 
-		$display("branch not-eq");
-		zeroFlag = (result != 32'd0) ? 1'b1 : 1'b0;
-			
-		end
-
-		GTZ: begin 
-		$display("branch greater than zero");
-		zeroFlag = (result > 32'd0) ? 1'b1 : 1'b0;
-		end
+		GTZ: begin zeroFlag = (result > 32'd0)  ? 1'b1 : 1'b0; end
 		
-		default: begin
-		zeroFlag = 1'b0;
-			$display("no branch operations. PC remains unaffected");
-		end
+		default: begin zeroFlag = 1'b0; end
 	endcase
 
-
-end
+end //always_comb
 
 assign PC_out = (zeroFlag == 1'b1) ? alu_op_iCont.br_addr : PC_in; 
-
-//assign PC_next = (zeroFlag == 1'b1) ? alu_op_iCont.br_addr : PC_next; 
  
 endmodule;
 
