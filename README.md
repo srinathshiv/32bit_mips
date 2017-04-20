@@ -1,3 +1,3 @@
 # 32bit_mips
 
-warning: development in progress, final build not completed as on 15-APR-2017 4:45 AM.
+warning: development in progress, strongly recommended not to refer/use this design until this readme gets updated to "use this design"
