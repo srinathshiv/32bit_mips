@@ -22,60 +22,39 @@ module memAccess(input clk,
 		);
  
 logic [31:0]data;
-//assign rfReadAddr_p1 = mem_iCont.reg_dest;
+
 assign dCacheAddr = addr ;
-assign dCacheWriteEn = 1'b1;
+assign dCacheWriteEn = (mem_iCont.f_dec.mem_op == MEM_OP_SW) ? 1'b1: 1'b0;
+assign dCacheReadEn  = (mem_iCont.f_dec.mem_op == MEM_OP_LW) ? 1'b1: 1'b0;
+
+always_comb begin
+	case (mem_iCont.f_dec.mem_op)
+	MEM_OP_SW: begin dCacheWriteData = storeData; end
+	endcase
+end
 
 always @(posedge clk) begin
 
-if(done_in == 1'b1) begin
+	if(done_in == 1'b1) begin
 
-	$display("--->Entering mem access");
-	//$display("calculated address: %d",addr);
-	//$display("dCache details:");
-	//$display("dCache write enable: %d",dCacheWriteEn);
-	//$display("dCacheAddr: %h(hex) %d(dec)",dCacheAddr,dCacheAddr);
-	//$display("dCacheWriteData: %d",dCacheWriteData);
-	//$display("dCacheReadData : %d",dCacheReadData);
-
-	case (mem_iCont.f_dec.mem_op)
-		MEM_OP_SW: begin
-			$display("operation: STORE_WORD");
-			 //data <= rfReadData_p1;
-//			dCacheAddr <= addr;
-			
-			dCacheWriteData <= storeData;
-			
-			$display("storing data,  rfReadData_p1= %d  into dCache addr %d", rfReadData_p1, dCacheAddr);
-		end
+		case (mem_iCont.f_dec.mem_op)
 		
-		MEM_OP_LW: begin
-			$display("operation: LOAD WORD");
-//			dCacheAddr <= addr;
-			loadedData <= dCacheReadData;	
-			$display("loading data,  loadedData = %d , dCacheReadData = %d from dCache addr %d", loadedData, dCacheReadData, dCacheAddr);
-		end
+		MEM_OP_LW: begin loadedData <= dCacheReadData; end
 		
-		MEM_OP_NONE: begin
-			$display("NOT A MEMORY OPERATION");
-			data <= data;
-		end
+		MEM_OP_NONE: begin $display(""); end
 		
-	endcase
+		endcase
 	
-	$display("<===Exiting mem access");
-	done_out   <= done_in;
-	resultOut <= addr ; 
-	iCont_out <= mem_iCont;
+		done_out   <= done_in;
+		resultOut <= addr ; 
+		iCont_out <= mem_iCont;
 
-end // if
+	end // if(done_in == 1'b1)
 
-else if(done_in == 1'b0) begin
+	else if(done_in == 1'b0) begin
 	done_out <= 1'b0;
-end
+	end
 
 end
-
-//assign dCacheWriteData = (mem_iCont.f_dec.mem_op == MEM_OP_SW) ? data : 0 ;
 
 endmodule;
