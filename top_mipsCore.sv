@@ -61,7 +61,7 @@ regFile rf(
 	.wp_data(rfWriteData_p0),
 	.rpa_out(rfReadData_p0), .rpb_out(rfReadData_p1));
 
-dCache dC( clk, dCacheAddr, dCacheWriteEn, dCacheReadEn, rfReadData_p1, dCacheReadData);
+dCache dC( clk, dCacheAddr, dCacheWriteEn, dCacheReadEn, dCacheWriteData, dCacheReadData);
 
 iCache iC( clk, iCacheReadAddr, iCacheReadData );
 
@@ -69,7 +69,7 @@ initial begin
 clk = 1'b1;
 rst = 1'b0;
 
-rfWriteEn_p0 = 1'b1;
+//rfWriteEn_p0 = 1'b1;
 //iCacheReadAddr = 32'd0;
 
 end
