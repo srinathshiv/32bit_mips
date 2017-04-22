@@ -27,6 +27,18 @@ logic [31:0]   rfWriteData_p0;
 logic [4:0]    rfWriteAddr_p0;
 logic          rfWriteEn_p0;
 
+// SELF-TEST
+logic rInst;
+logic [31:0]inst;
+logic [5:0]opcode;
+logic [5:0]funct;
+
+logic [31:0]src1_val;
+logic [31:0]src2_val;
+logic [31:0]result;
+
+
+
 mipsCore mips( 
 	
 	.iCacheReadData(iCacheReadData),
@@ -69,82 +81,48 @@ initial begin
 clk = 1'b1;
 rst = 1'b0;
 
-//rfWriteEn_p0 = 1'b1;
-//iCacheReadAddr = 32'd0;
-
 end
 
 
-
-/*initial begin
-rfWriteAddr_p0 = 5'd1;
-rfWriteData_p0 = 32'd20;
-
-rfWriteAddr_p0 = 5'd2;
-rfWriteData_p0 = 32'd20;
-
-rfWriteAddr_p0 = 5'd3;
-rfWriteData_p0 = 32'd20;
-
-rfWriteAddr_p0 = 5'd4;
-rfWriteData_p0 = 32'd20;
-end*/
-
 initial begin 
-#60
-
-/*iCacheReadData = 32'h20_01_00_02;
-#2
-
-iCacheReadData = 32'h00_43_10_20;
-#10
-*/
-/*iCacheReadData = 32'h20_22_00_02;
-#12
-
-iCacheReadData = 32'h20_43_00_02;
-#20
-
-iCacheReadData = 32'h00_22_20_20;	//ADD $1,$2,$4
-#20
-
-iCacheReadData = 32'h00_81_28_20;	//ADD $5,$4,$2
-#20
-
-iCacheReadData = 32'hac_41_00_00;	//SW $1, 0($2)
-#20
-
-iCacheReadData = 32'h8c_46_00_00;	//LW $6, 0($2)
-#40
-
-iCacheReadData = 32'h20_c6_00_00;	//ADDI $6,$6,0
 #30
-*/
-/*iCacheReadData = 32'h21_29_00_05;	// ADDI
-#20
+/*
+//SELF-TEST BEGIN
 
-iCacheReadData = 32'h21_2A_00_05;
-#20
+for (int pc=0 ; pc<100; pc=pc+4) begin
+	iCacheReadAddr = pc;
+	inst  = iCacheReadData;
+	rInst = ( inst[31:26] == 6'h00) ? 1'b1: 1'b0;
+	opcode = inst[31:26];
+	funct =inst[5:0];
 
-iCacheReadData = 32'h21_2B_00_05;
-#20
-  
-iCacheReadData = 32'h21_2C_00_05;
-#20
+	$display("rinst: %b",rInst);
+	
+	if(!rInst) begin
+		src1_val = rfReadData_p0[rfReadAddr_p0]; 
+		src2_val = {( inst[15]==1'b1 ) ? 16'hffff:16'h0000 ,inst[15:0]};  
 
-iCacheReadData = 32'h8d_49_00_04;	//lw t1, 4(t2)
-#20
- 
-iCacheReadData = 32'had_49_00_04;	//sw t1, 4(t2)
-#20
+		$display("src1: %d",src1_val);
+		$display("src2: %d",src2_val);
+		
+		case(opcode)
+			6'h08: begin
+				result = src1_val + src2_val ; 
+				$display("ADDI");
+				end
 
-iCacheReadData = 32'h00_0a_48_c3;	//SRA t1 t2 03
-#20
+			6'h0c: begin
+				result = src1_val & src2_val;
+				end
+		endcase
+	#8
+		if(rfWriteData_p0 == result) begin
+		$display("SUCCESS");
+		end
+	end
+end
+//SELF-TEST END
 
-iCacheReadData = 32'h01_4B_48_25;	//OR $1,$2,$3
-#20
-
-iCacheReadData = 32'h01_4B_48_25;	//OR 
 */
 $finish();
 end

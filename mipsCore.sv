@@ -6,6 +6,7 @@
 `include "writeBack.sv"
 
 `include "freezer.sv"
+`include "flusher.sv"
      
 module mipsCore( 
 	//ICache Ifc
@@ -78,7 +79,7 @@ logic jumpFlag = 1'b0;
 
 //FREEZE SIGNALS
 //NOTE  : I use word "freeze" for "stall" which is the common jargon but "stall" confuses me. 
-//USAGE : freeze sinals freeze that particular stage in time
+//USAGE : freeze signals freeze that particular stage in time
 //logic freezeIF = 1'b0 ;
 //logic freezeID = 1'b0 ;
 //logic freezeEX = 1'b0 ;
@@ -190,6 +191,13 @@ writeBack wb(   .clk(clk), .lData(Ldata),
 		.freezeEX(freezeEX)
 		);
 */
+
+flusher flsh( .clk(clk), .rst(rst), .jumpFlag(jumpFlag), .zFlag(zFlag), 
+	
+		.iContent(iContent),
+		.toMem_iCont(toMem_iCont),
+		.fetched_val(fetched_val)
+		);
 
 endmodule;
 

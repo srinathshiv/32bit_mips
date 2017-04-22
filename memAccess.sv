@@ -38,11 +38,8 @@ always @(posedge clk) begin
 	if(done_in == 1'b1) begin
 
 		case (mem_iCont.f_dec.mem_op)
-		
 		MEM_OP_LW: begin loadedData <= dCacheReadData; end
-		
 		MEM_OP_NONE: begin $display(""); end
-		
 		endcase
 	
 		done_out   <= done_in;
@@ -54,7 +51,6 @@ always @(posedge clk) begin
 	else if(done_in == 1'b0) begin
 	done_out <= 1'b0;
 	end
-
 end
 
 endmodule;
