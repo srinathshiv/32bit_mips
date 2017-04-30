@@ -3,7 +3,7 @@
 module instr_decode(
 	input clk, 
 	input rst,
-	/*input logic freezeID,*/
+	input logic freezeID,
 	input [31:0]instr, 
 	input logic [31:0]op1_in,
 	input logic [31:0]op2_in,
@@ -126,6 +126,7 @@ always_comb begin
 
 /*lw*/		7'h23: 	begin
 			iCont.f_dec = { ALU_FUNC_ADD, MEM_OP_LW, OPB_SIGNIMM, JMP_NO, BR_NO};
+			$display("id: load word");
 			end
 
 /*sw*/		7'h2b: 	begin
@@ -137,27 +138,31 @@ always_comb begin
 			end
 
 		endcase
- 
+
+		
 
 end // always_comb
  
 always_comb begin
 	case(iCont.f_dec.jmp) 
 		JMP_J: begin PC_out =  {PC_in[31:28], iCont.jAddr} ; end
-
 		JMP_JR: begin PC_out = op1_in; end
-
 		default: begin PC_out = PC_in; end
 	endcase
 end // always_comb
 
+
 always @(posedge clk) begin
-	if( /*!freezeID &&*/ done_in == 1'b1) begin
+	if( !freezeID && done_in == 1'b1) begin
  		op1 <= op1_in; 
 		//op2 <= (iCont.f_dec.opb == OPB_SIGNIMM)  ? iCont.signImm : op2_in ;
 		op2 <= op2_in;
 		iCont_toALU <= iCont;
+		//freezeID=1'b0;
 	end
+	
+	
+
 		done_out <= done_in; 
 end //always @(posedge clk)
 

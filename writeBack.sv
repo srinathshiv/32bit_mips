@@ -16,7 +16,7 @@ module writeBack(
 		);
  
 assign ctrl_mem2reg = (wb_iCont.f_dec.mem_op == MEM_OP_NONE) ? 1'b0: 1'b1;
-assign rfWriteEn_p0 = (wb_iCont.f_dec.mem_op == MEM_OP_NONE) ? 1'b1: 1'b0;
+assign rfWriteEn_p0 = (wb_iCont.f_dec.mem_op == MEM_OP_SW) ? 1'b0: 1'b1;
 
 always_comb begin
 rfWriteAddr_p0 = wb_iCont.reg_dest;

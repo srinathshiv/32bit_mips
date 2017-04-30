@@ -2,7 +2,7 @@
 
 module execute( input clk, 
 		input rst, 
-		/*input logic freezeEX,*/
+		input logic freezeEX,
 		input instr_structure alu_op_iCont, 
 		input [31:0]op1, 
 		input [31:0]op2, 
@@ -27,12 +27,15 @@ always_comb begin
 	operand1 = op1;
 	operand2 = (alu_op_iCont.f_dec.opb == OPB_SIGNIMM) ?  alu_op_iCont.signImm : op2;
 	operandShift = alu_op_iCont.shamt;
+	
+
+	
 end
 
 
 always @(posedge clk) begin
 
-	if( /*!freezeEX &&*/ done_in == 1'b1) begin
+	if( !freezeEX && done_in == 1'b1) begin
 	
 		case(alu_op_iCont.f_dec.alu_func)  
 			ALU_FUNC_ADD	: begin result  <= operand1 + operand2; end 
@@ -53,11 +56,16 @@ always @(posedge clk) begin
 		
 			default 	: begin result <= result    ; $display("UNKNOWN ARITHMETIC INSTRUCTION") ; end
 		endcase 
-
+ 
 		done_out  <= done_in;
 		iCont_out <= alu_op_iCont;
 		hold_op2  <= op2;
 	end // if( !freezeEX && done_in==1'b1)
+
+	
+	if(freezeEX) begin
+		iCont_out.f_dec = { ALU_FUNC_NOP, MEM_OP_NONE, OPB_SIGNIMM, JMP_NO, BR_NO}; 
+	end
 
 	else if(done_in == 1'b0) begin
 	done_out <= 1'b0;

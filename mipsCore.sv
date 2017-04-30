@@ -80,9 +80,9 @@ logic jumpFlag = 1'b0;
 //FREEZE SIGNALS
 //NOTE  : I use word "freeze" for "stall" which is the common jargon but "stall" confuses me. 
 //USAGE : freeze signals freeze that particular stage in time
-//logic freezeIF = 1'b0 ;
-//logic freezeID = 1'b0 ;
-//logic freezeEX = 1'b0 ;
+logic freezeIF = 1'b0 ;
+logic freezeID = 1'b0 ;
+logic freezeEX = 1'b0 ;
 
 
 integer clock_count = 0;
@@ -114,7 +114,7 @@ assign dCacheWriteEn = 1'b1;
 assign iCacheReadAddr = PC_next;
 
 always @(posedge clk) begin
-	/*if(!freezeIF) begin*/
+	if(!freezeIF) begin
 		clock_count  = clock_count +1;
 		$display("--------------------\n| clock-cycle = %d \n--------------------",clock_count);
 		fetched_val  <= iCacheReadData;
@@ -126,13 +126,14 @@ always @(posedge clk) begin
 		endcase
 
 		imdone_if <= 1'b1;
-	/*end*/
+		
+	end
 end
 // INSTRUCTION FETCH ENDS 
  
    
 //STAGE 2:INSTRUCTION DECODE
-instr_decode id (.clk(clk), .rst(rst),  /*.freezeID(freezeID),*/
+instr_decode id (.clk(clk), .rst(rst),  .freezeID(freezeID),
 		 .instr(fetched_val), .op1_in(i_rs) , .op2_in(i_rt) ,
 		
 		 .iCont_toALU(iContent) , 
@@ -146,7 +147,7 @@ instr_decode id (.clk(clk), .rst(rst),  /*.freezeID(freezeID),*/
 
 
 //STAGE 3:EXECUTE
-execute ex(.clk(clk) , .rst(rst) , /*.freezeEX(freezeEX),*/
+execute ex(.clk(clk) , .rst(rst) , .freezeEX(freezeEX),
 	   .alu_op_iCont(iContent), .op1(op1_id), .op2(op2_id), 
 
 	   .result(resultALU) , .zeroFlag(zFlag), .hold_op2(op2_ALU), .iCont_out(toMem_iCont),
@@ -180,7 +181,7 @@ writeBack wb(   .clk(clk), .lData(Ldata),
 		.done_in(imdone_mem),.done_out(imdone_wb)
 		); 
 
-/*freezer frz(  .clk(clk), .rst(rst), 
+freezer frz(  .clk(clk), .rst(rst), 
 		.ins1_rt(toMem_iCont.reg2),
 		.ins2_rs(iContent.reg1),	
 		.ins2_rt(iContent.reg2),
@@ -190,7 +191,7 @@ writeBack wb(   .clk(clk), .lData(Ldata),
 		.freezeID(freezeID),
 		.freezeEX(freezeEX)
 		);
-*/
+
 
 flusher flsh( .clk(clk), .rst(rst), .jumpFlag(jumpFlag), .zFlag(zFlag), 
 	
@@ -198,6 +199,20 @@ flusher flsh( .clk(clk), .rst(rst), .jumpFlag(jumpFlag), .zFlag(zFlag),
 		.toMem_iCont(toMem_iCont),
 		.fetched_val(fetched_val)
 		);
+
+forward fwd(
+	.clk(clk) , .rst(rst),
+	.dest(toMem_iCont.reg_dest),
+	.reg1(iContent.reg1),
+	.reg2(iContent.reg2),
+	.ctrls(toMem_iCont.f_dec),
+	.resultALU(resultALU),	
+	.result_fromMEM(result_fromMEM),
+	
+
+	.op1(op1_id),
+	.op2(op1_id) 
+);
 
 endmodule;
 
