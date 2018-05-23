@@ -1,3 +1,12 @@
 # 32bit_mips
+A simple RISC processor from scratch with
+  - Data forwarding
+  - Stall
+  - flush
+that can execute about 30 instructions
 
-warning: development in progress, strongly recommended not to refer/use this design until this readme gets updated to "use this design"
+mipsCore.sv is literally the core of the processor. Start there if you want to explore the architecture.
+top_mipsCore.sv is a testbench program for the procesor.
+iCache.sv holds the instructions that will be executed by the processor
+dCache.sv repesents a DRAM
+instr_decode.sv, execute.sv, memAccess.sv, writeBack.sv represents the pipeline stages of the processor
