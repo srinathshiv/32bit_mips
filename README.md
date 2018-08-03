@@ -2,8 +2,8 @@
 A simple RISC processor from scratch with
   - Data forwarding
   - Stall
-  - flush
-that can execute about 30 instructions
+  - flush,
+that can execute 20 instructions
 
 mipsCore.sv is literally the core of the processor. Start there if you want to explore the architecture.
 top_mipsCore.sv is a testbench program for the procesor.
